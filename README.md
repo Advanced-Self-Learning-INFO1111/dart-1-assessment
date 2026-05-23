@@ -1,6 +1,3 @@
-# Self Assessment 1
-Self assessment section 1 for the INFO1111 advanced assignment. 
-
 # Task description: The Handy Inventory Manager
 
 This is a small, manageable command-line challenge designed to test core Dart concepts in a single file. 

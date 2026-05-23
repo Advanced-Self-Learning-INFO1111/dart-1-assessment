@@ -36,6 +36,11 @@ Map<int, Item> createStoreInventory() {
 /// Tries to obtain what exact item the user wants
 int getUserInput(int amountOfItems) {
 	// Gets user input and puts it in a nullable variable
+	
+	// Add 1 to amountOfItems because we add 1 extra option to the list
+	// of items which is "Checkout & Exit"
+	amountOfItems++;
+
 	while (true) {
 		print('');
 		stdout.write("Enter the number of the item you want to buy: ");
@@ -46,9 +51,7 @@ int getUserInput(int amountOfItems) {
 		try {
 			int selection = int.parse(userInput);
 
-			// Add 1 to amountOfItems because we add 1 extra option to the list
-			// of items which is "Checkout & Exit"
-			if (selection > amountOfItems + 1 || selection < 1) {
+			if (selection > amountOfItems || selection < 1) {
 				throw RangeError("Selection is outside of range.");
 			}
 			return selection;
@@ -82,8 +85,69 @@ int getAmount() {
 	}
 }
 
+/// Prints the receipt of the user's purchases.
 void printReceipt(List<Item> purchasedItems) {
-	print(purchasedItems);
+	print("=== Your Receipt ===");
+	
+	double totalPrice = 0;
+	for (var item in purchasedItems) {
+		print("* ${item.name} (\$${item.price?.toStringAsFixed(2)})");
+		totalPrice += item.price ?? 0.0;
+	}
+	double afterDiscount = totalPrice * 0.90;
+
+	print("----------------");
+	print("Subtotal: \$${totalPrice.toStringAsFixed(2)}");
+	print("Total after 10% discount: \$${afterDiscount.toStringAsFixed(2)}");
+	print("Thank you for shopping with us!");
+}
+
+/// Prints the entire catalogue of items
+void printCatalogue(Map<int, Item> storeInventory) {
+	int i = 0;
+	for (var item in storeInventory.values) {
+		i++;
+
+		// Prints the name, and then the price with 2d.p.
+		// because price is nullable, use conditional operator ?.
+		print("$i. ${item.name} \$${item.price?.toStringAsFixed(2)}");
+	}
+	i++;
+	print("${i}. Checkout & Exit");
+}
+
+/// Runs the main loop where users can add items to their list of items to purchase.
+List<Item> addItems(int amountOfItems, Map<int, Item> storeInventory, List<Item> purchasedItems) {
+	bool userIsShopping = true;
+	while (userIsShopping) {
+	
+		// Get the amount of items.
+		int userSelection = getUserInput(amountOfItems);
+	
+		// Force end when user wants to exit program.
+		if (userSelection == amountOfItems + 1) {
+			userIsShopping = false;
+			continue;
+		}
+	
+		// Get the user selected item
+		Item? userSelectedItem = storeInventory[userSelection];
+		if (userSelectedItem == null) {
+			print("Selection does not exist in inventory.");
+			continue;
+		}
+
+		// Add the item to the list of purchasedItems
+		int amountOfThisItem = getAmount();
+		for (int i=0; i < amountOfThisItem; i++) {
+			purchasedItems.add(userSelectedItem);
+		}
+
+		// Print the addition statement.
+		print("Added ${amountOfThisItem}x ${userSelectedItem.name} to your cart.");
+	}
+
+	return purchasedItems;
 }
 
 void main() {
@@ -94,30 +158,9 @@ void main() {
 	Map<int, Item> storeInventory = createStoreInventory();
 	List<Item> purchasedItems = [];
 	int amountOfItems = storeInventory.length;
-
-	bool userIsShopping = true;
-	while (userIsShopping) {
-		print('');
-
-		// Get the amount of items.
-		int userSelection = getUserInput(amountOfItems);
-		
-		// If the user selected "Checkout & Exit"
-		if (userSelection == amountOfItems + 1) {
-			userIsShopping = false;
-			continue;
-		}
-
-		// Get the user selected item, and then add it to the list of 
-		// purchased items. 
-		Item? userSelectedItem = storeInventory[userSelection];
-		
-		if (userSelectedItem != null) {
-			print("Selection does not exist in inventory.");
-			continue;
-		}
-		
-		
-		
-	}
+	
+	// Print the catalogue, get the items added, and then print the receipt. 
+	printCatalogue(storeInventory);
+	purchasedItems = addItems(amountOfItems, storeInventory, purchasedItems);
+	printReceipt(purchasedItems);
 }
